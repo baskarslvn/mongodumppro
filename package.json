@@ -1,0 +1,24 @@
+{
+  "name": "mongodumppro",
+  "version": "0.0.1",
+  "description": "A library that extends the functionality of mongodump command",
+  "main": "MongoDumperPro.js",
+  "bin": "bin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baskarslvn/mongodumppro.git"
+  },
+  "author": "Baskar Selvan R",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/baskarslvn/mongodumppro/issues"
+  },
+  "homepage": "https://github.com/baskarslvn/mongodumppro#readme",
+  "dependencies": {
+    "async": "^3.2.0",
+    "child_process": "^1.0.2"
+  }
+}
