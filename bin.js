@@ -19,6 +19,10 @@ const setServerCreds = ()=>{
             options.push("--username");
             options.push(yargs.argv.username);
         }
+        if(yargs.argv.query){
+            options.push("--query");
+            options.push(yargs.argv.query);
+        }
         if(yargs.argv.password){
             options.push("--password");
             options.push(yargs.argv.password);
