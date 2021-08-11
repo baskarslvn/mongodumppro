@@ -5,29 +5,24 @@ const setServerCreds = ()=>{
     const options=[];
     if(yargs.argv){
         if(yargs.argv.host){
-            options.push("--host");
-            options.push(yargs.argv.host);
+            options["--host"]=yargs.argv.host
         }
         if(yargs.argv.port){
-            options.push("--port");
-            options.push(yargs.argv.port);
+            options["--port"] = yargs.argv.port;
         }
 
         // "--username", hostUsrNm, "--password", hostPassWord, "--authenticationDatabase", "admin"
 
         if(yargs.argv.username){
-            options.push("--username");
-            options.push(yargs.argv.username);
+            options["--username"] = yargs.argv.username;
         }
         if(yargs.argv.query){
-            options.push("--query");
-            options.push(yargs.argv.query);
+            options["--query"] = yargs.argv.query;
         }
         if(yargs.argv.password){
-            options.push("--password");
-            options.push(yargs.argv.password);
-            options.push("--authenticationDatabase");
-            options.push("admin");
+            options["--password"] = yargs.argv.password;
+            // options.push("authenticationDatabase");
+            // options.push("admin");
         }
         options["db"] = yargs.argv["db"];
         options["collection"] = yargs.argv["collection"];
@@ -37,7 +32,7 @@ const setServerCreds = ()=>{
 }
 
 const processInputs = ()=>{
-    console.log(yargs.argv);
+    // console.log(yargs.argv);
     if(yargs.argv && (yargs.argv['?'] || yargs.argv.h)){
         console.log(`
             Usage: mongodumperpro <options>

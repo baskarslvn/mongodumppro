@@ -35,22 +35,33 @@ const fileFunction = (()=>{
     return {
         createFile: (db, collections, next)=>{
             currentFileName = `${db}_dump_progress.json`;
-            fs.open(currentFileName, "w", (err, fdn)=>{
+            fs.open(currentFileName, "a+", (err, fdn)=>{
                 if(err){
                     next();
                 }else{
                     // filePointer = fdn;
-                    const writeObj = {};
-                    for(let i=collections.length-1; i>=0; i--)
-                        writeObj[collections[i]] = -1;
-                    const buffer = new Buffer(JSON.stringify(writeObj));
-                    console.log("^^^^^^^^^^^^^^^^^^^^^^^^^", fdn);
-                    fs.write(fdn, buffer, 0, buffer.length, null, (err)=>{
+                    const fileAsString = fs.readFileSync(currentFileName, "utf8");
+                    let writeObj = {}
+                    // console.log("fileAsStringh", fileAsString.length);
+                    if(fileAsString.length>0){
+                        writeObj = JSON.parse(fileAsString);
                         currentProgress = writeObj;
+                        // console.log("current progress", currentProgress);
+                        // console.log(currentProgress);
                         fs.close(fdn, ()=>{});
-                        console.log("progress update attempted!!!");
                         next();
-                    });
+                    }else{
+                        for(let i=collections.length-1; i>=0; i--)
+                            writeObj[collections[i]] = -1;
+                        const buffer = new Buffer(JSON.stringify(writeObj));
+                        // console.log("^^^^^^^^^^^^^^^^^^^^^^^^^", fdn);
+                        fs.write(fdn, buffer, 0, buffer.length, null, (err)=>{
+                            currentProgress = writeObj;
+                            fs.close(fdn, ()=>{});
+                            // console.log("progress update attempted!!!");
+                            next();
+                        });
+                    }
                 }
             });
         },
@@ -67,7 +78,7 @@ const fileFunction = (()=>{
 
                         }else{
                             currentProgress = writeObj;
-                            console.log("collection progress updated attempted!!!");
+                            // console.log("collection progress updated attempted!!!");
                         }
                     });
                 // }
@@ -86,7 +97,7 @@ const fileFunction = (()=>{
 
                         }else{
                             currentProgress = writeObj;
-                            console.log("collection progress updated attempted!!!");
+                            console.log("dumping progress updated!!!");
                         }
                         cb();
                     });
@@ -108,20 +119,47 @@ const dumpCollection = (collections, db, next)=>{
         },
         dumpEachCollection: (scb)=>{
             eachSeries(collections, (coll, nextCollection)=>{
-                if(avoidCollections.indexOf(coll) != -1 || fileFunction.getCurrentProgress[coll]==1){
-                    console.log(`skipping by user pref..${coll}`);
+                // console.log(coll, fileFunction.getCurrentProgress()[coll])
+                if(avoidCollections.indexOf(coll) != -1 || fileFunction.getCurrentProgress()[coll]==1){
+                    console.log(`skipping by user pref/already dumped..${coll}`);
                     nextCollection();
                 }else{
                     fileFunction.updateFile(coll);
                     console.log(`gonna dump...${coll} of ${db}`);
+                    // console.log("pppppump options", options);
                     const dumpCmd = "mongodump";
-                    options["db"] = db;
-                    options["colection"] = coll;
+                  
+                    const dumpOptions = ["--db", db, "--collection", coll];
+                    if(options["--host"]){
+                        dumpOptions.push("--host");
+                        dumpOptions.push(options["--host"]);
+                    }
+                    if(options["--port"]){
+                        dumpOptions.push("--port");
+                        dumpOptions.push(options["--port"]);
+                    }
+                    if(options["--username"]){
+                        dumpOptions.push("--username");
+                        dumpOptions.push(options["--username"]);
+                    }
+                    if(options["--password"]){
+                        dumpOptions.push("--password");
+                        dumpOptions.push(options["--password"]);
+                        dumpOptions.push("--authenticationDatabase");
+                        dumpOptions.push("admin");
+                    }
+                    if(options["--query"]){
+                        dumpOptions.push("--query");
+                        dumpOptions.push(options["--query"]);
+                    }
+                    
+                    // console.log("dump options", dumpOptions);
                     //TODO outfolder and dumpOptions to be changes upon user input
                     // const dumpOptions = ["--host", hostIP, "--port", hostPort, "-d", dumpDBNm, "-c", collection, "--query", dumpQuery,
                     // "--username", hostUsrNm, "--password", hostPassWord, "--authenticationDatabase", "admin"];
-                    const ls = spawn(dumpCmd, options);
-        
+                    
+                    const ls = spawn(dumpCmd, dumpOptions);
+
                     ls.stdout.on("data", data => {
                         console.log(`stdout: ${data}`);
                     });
@@ -132,10 +170,11 @@ const dumpCollection = (collections, db, next)=>{
         
                     ls.on('error', (error) => {
                         console.log(`error: ${error.message}`);
-                        nextCollection(err);
+                        nextCollection(error);
                     });
         
                     ls.on("close", code => {
+                        console.log("code", code);
                         if(code === 0 ){
                             fileFunction.saveProgress(coll, ()=>{
                                 console.log(`success dumping ${coll} of ${db}`);
@@ -250,6 +289,7 @@ const excuteCommandInCMD = (()=>{
         execute : (command, options, subCmd, storeIn, next)=>{
             let cmdOutput = "";
             collNms = [];
+            options.splice(options.indexOf("--query"), 2);
             ls = spawn(command, options);
             // console.log("options,,,,,,,,,,,"+ command+"==="+options);
 
@@ -346,6 +386,7 @@ const getAllCollections = (dbNm, cb)=>{
         // collNms.shift();
         collNms.splice(0, (collNms.indexOf("+=boss=+")+1));
         collNms.pop();
+        // console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         // console.log(collNms);
         nameStore[dbNm] = collNms;
         collNms = [];
@@ -363,7 +404,7 @@ module.exports = function operate(inp){
         // },
         getAllDbs: (scb)=>{
             options = inp;
-            console.log("options", options);
+            // console.log("options", options);
             if(!options["db"]){
                 getAllDbs(scb);
                 // scb();
@@ -378,6 +419,8 @@ module.exports = function operate(inp){
             //     // scb();
             // }else{
                 if(!options["collection"]){
+                    // console.log("fgeting al collections..........");
+                    // console.log(dbNms);
                     eachSeries(dbNms, getAllCollections, (err)=>{
                         scb();
                     });
@@ -385,6 +428,8 @@ module.exports = function operate(inp){
                     for(let i=dbNms.length-1; i>=0; i--){
                         nameStore[dbNms[i]] = [options["collection"]];
                     }
+                    // console.log("********************");
+                    // console.log(nameStore);
                     scb();
                 }
                 
