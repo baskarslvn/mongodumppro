@@ -19,6 +19,7 @@
   "homepage": "https://github.com/baskarslvn/mongodumppro#readme",
   "dependencies": {
     "async": "^3.2.0",
-    "child_process": "^1.0.2"
+    "child_process": "^1.0.2",
+    "yargs": "^17.6.2"
   }
 }

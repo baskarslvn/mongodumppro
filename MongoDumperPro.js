@@ -234,41 +234,44 @@ const showOnCmd = ()=>{
         let dbNm = "";
 
         let afterBoss=false;
-        for(let i=0; i<dbs.length; i++){
+        if(index>0){
+            for(let i=index; i<dbs.length; i++){
             // if(index>0 && i>index && ((afterBoss=afterBoss || (dbs[i]=='\n')) )){
-            if(index>0 && i>index ){
-                spaceStarts = (spaceStarts || dbs[i] == ' ' || dbs[i] == '\r');
+                spaceStarts = (spaceStarts || (dbs[i] == '\r' && dbs[i+1] != "\n") || (dbs[i] == ' ' && dbs[i+1] != "\n"));
                 lineEnds = dbs[i] == "\n";
-                if(!spaceStarts){
-                    dbNm += dbs[i];
-                    // console.log("adding line");
-                    // console.log(dbNm);
-                    // console.log(dbs[i]);
-                }else if(lineEnds){
+                console.log("space starts", spaceStarts, lineEnds);
+                if(lineEnds){
                     spaceStarts = false;
                     newArr.push(dbNm.trim());
-                    // console.log("break line");
-                    // console.log(dbNm);
+                    console.log("break line");
+                    console.log(dbNm);
                     dbNm ="";
-                }
-            }else{
-                spaceStarts = (spaceStarts || dbs[i] == ' ');
-                lineEnds = dbs[i] == "\n";
-                if(!spaceStarts){
+                }else if(!spaceStarts){
                     dbNm += dbs[i];
-                    // console.log("adding line");
-                    // console.log(dbNm);
-                    // console.log(dbs[i]);
-                }else if(lineEnds){
-                    spaceStarts = false;
-                    newArr.push(dbNm.trim());
-                    // console.log("break line");
-                    // console.log(dbNm);
-                    dbNm ="";
+                    console.log("adding line");
+                    // console.log(dbNm, i);
+                    console.log(dbs[i], dbs[i] == "\n");
                 }
             }
-           
+        }else{
+            for(let i=0; i<dbs.length; i++){
+                spaceStarts = (spaceStarts || dbs[i] == ' ');
+                lineEnds = dbs[i] == "\n";
+                if(lineEnds){
+                    spaceStarts = false;
+                    newArr.push(dbNm.trim());
+                    // console.log("break line");
+                    // console.log(dbNm);
+                    dbNm ="";
+                }else if(!spaceStarts){
+                    dbNm += dbs[i];
+                    console.log("adding line", i);
+                    console.log(dbNm);
+                    // console.log(dbs[i]);
+                }
+            }
         }
+
     }else{
         print = false;
         // newArr = []; //remove onn undesired results
